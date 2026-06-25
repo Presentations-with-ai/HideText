@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>HideText</title>
+  <style>
+    :root {
+      --primary:#4f46e5;
+      --primary2:#7c3aed;
+      --primary3:#8b5cf6;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --soft2:#eef2ff;
+      --success:#16a34a;
+      --danger:#dc2626;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,.30), transparent 28%),
+        radial-gradient(circle at 85% 14%, rgba(255,255,255,.18), transparent 24%),
+        linear-gradient(135deg, #667eea, #764ba2);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 22px 0 34px;
+    }
+    .page { width: min(92vw, 460px); }
+    .card {
+      position: relative;
+      background: rgba(255,255,255,.96);
+      width: 100%;
+      padding: clamp(18px, 4vw, 24px);
+      border-radius: 24px;
+      box-shadow: 0 18px 44px rgba(31,41,55,.22), inset 0 1px 0 rgba(255,255,255,.70);
+      border: 1px solid rgba(255,255,255,.58);
+      margin-bottom: 14px;
+      animation: fade .25s ease;
+      overflow: hidden;
+    }
+    .card::before {
+      content:"";
+      position:absolute;
+      inset:0 0 auto 0;
+      height:4px;
+      background: linear-gradient(90deg, var(--primary), var(--primary2), #ec4899);
+      opacity:.92;
+    }
+    @keyframes fade { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
+    .brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .logo {
+      width:43px;
+      height:43px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      box-shadow:0 12px 26px rgba(79,70,229,.33);
+      flex:0 0 auto;
+    }
+    h1 { margin:0; font-size:24px; line-height:1.05; letter-spacing:-.7px; }
+    .subtitle { margin-top:4px; font-size:12px; color:var(--muted); font-weight:800; letter-spacing:.2px; }
+    .badge {
+      background: linear-gradient(135deg, #eef2ff, #faf5ff);
+      color: var(--primary);
+      border:1px solid rgba(99,102,241,.16);
+      border-radius:999px;
+      padding:10px 12px;
+      font-size:12px;
+      font-weight:950;
+      white-space:nowrap;
+      box-shadow:0 8px 18px rgba(79,70,229,.10);
+    }
+    .tabs, .modeTabs { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .tabs { margin-top:2px; }
+    .modeTabs {
+      background:rgba(243,244,246,.86);
+      border:1px solid rgba(229,231,235,.95);
+      padding:6px;
+      border-radius:20px;
+      margin-top:10px;
+      gap:8px;
+      box-shadow: inset 0 2px 8px rgba(17,24,39,.04);
+    }
+    button, .download {
+      width:100%;
+      border:none;
+      border-radius:18px;
+      padding:15px 16px;
+      background:linear-gradient(135deg,#4338ca,#7c3aed);
+      color:#fff;
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:-.15px;
+      cursor:pointer;
+      box-shadow:0 14px 30px rgba(79,70,229,.29), inset 0 1px 0 rgba(255,255,255,.22);
+      text-decoration:none;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:9px;
+      min-height:52px;
+      transition: transform .16s ease, box-shadow .16s ease, filter .16s ease, background .16s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    button::after, .download::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.20), transparent);
+      transform:translateX(-120%);
+      transition:transform .55s ease;
+      pointer-events:none;
+    }
+    button:hover, .download:hover { transform: translateY(-1px); filter:saturate(1.08); box-shadow:0 18px 34px rgba(79,70,229,.34); }
+    button:hover::after, .download:hover::after { transform:translateX(120%); }
+    button:active, .download:active { transform:scale(.985); }
+    .tabBtn {
+      background:#fff;
+      color:var(--primary);
+      border:1px solid rgba(99,102,241,.22);
+      box-shadow:0 10px 22px rgba(17,24,39,.09);
+      min-height:50px;
+    }
+    .tabBtn.active {
+      background:linear-gradient(135deg,#4338ca,#7c3aed);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.22);
+    }
+    .modeBtn {
+      border-radius:15px;
+      padding:11px 10px;
+      background:transparent;
+      color:var(--muted);
+      box-shadow:none;
+      font-size:14px;
+      min-height:42px;
+    }
+    .modeBtn:hover { transform:none; box-shadow:none; }
+    .modeBtn::after { display:none; }
+    .modeBtn.active {
+      background:#fff;
+      color:var(--primary);
+      box-shadow:0 8px 18px rgba(17,24,39,.10);
+    }
+    .secondary {
+      background:#fff;
+      color:var(--primary);
+      border:1px solid rgba(99,102,241,.24);
+      box-shadow:0 10px 22px rgba(17,24,39,.09);
+    }
+    .secondary:hover { box-shadow:0 14px 28px rgba(79,70,229,.18); }
+    #mp3HideBtn::before { content:"🔒"; }
+    #pngHideBtn::before { content:"🔒"; }
+    #mp3OpenBtn::before { content:"🔎"; }
+    #pngOpenBtn::before { content:"🔎"; }
+    #mp3CopyBtn::before, #pngCopyBtn::before { content:"📋"; }
+    #mp3Download::before, #pngDownload::before { content:"⬇"; font-weight:950; }
+    .tabBtn[data-format="mp3"]::before { content:"♪"; font-size:18px; line-height:0; }
+    .tabBtn[data-format="png"]::before { content:"▧"; font-size:17px; line-height:0; }
+    .modeBtn[data-mode="hide"]::before { content:"✦"; }
+    .modeBtn[data-mode="open"]::before { content:"⌕"; }
+    .download.disabled, button:disabled { opacity:.58; pointer-events:none; filter:grayscale(.1); }
+    .panel { display:none; }
+    .panel.show { display:block; }
+    .title {
+      font-size:18px;
+      font-weight:950;
+      margin:0 0 14px;
+      letter-spacing:-.25px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    #mp3-hide .title::before, #png-hide .title::before { content:"🔐"; }
+    #mp3-open .title::before, #png-open .title::before { content:"🗝"; }
+    label {
+      display:flex;
+      align-items:center;
+      gap:7px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+      margin:12px 0 8px;
+    }
+    label::before {
+      content:"";
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      box-shadow:0 0 0 4px rgba(99,102,241,.10);
+    }
+    input[type="file"], textarea {
+      width:100%;
+      border:1px solid var(--line);
+      outline:none;
+      background:linear-gradient(180deg,#fff,#f9fafb);
+      color:var(--text);
+      border-radius:18px;
+      padding:14px;
+      font-size:15px;
+      font-weight:650;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+      transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    input[type="file"]:focus, textarea:focus {
+      border-color:var(--primary2);
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(124,58,237,.13);
+    }
+    input[type="file"]::file-selector-button {
+      border:none;
+      border-radius:14px;
+      padding:10px 12px;
+      margin-right:10px;
+      background:linear-gradient(135deg,#eef2ff,#f5f3ff);
+      color:var(--primary);
+      font-weight:950;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(79,70,229,.10);
+    }
+    textarea { min-height:132px; resize:vertical; line-height:1.45; }
+    .actions { display:grid; gap:10px; margin-top:12px; }
+    .status {
+      margin-top:12px;
+      background:linear-gradient(180deg,#fff,#f9fafb);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:13px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:750;
+      line-height:1.45;
+      white-space:pre-wrap;
+      box-shadow:0 8px 20px rgba(17,24,39,.05);
+    }
+    .ok { color:var(--success); }
+    .bad { color:var(--danger); }
+    audio { width:100%; margin-top:12px; display:none; }
+    .preview {
+      margin-top:12px;
+      border-radius:18px;
+      overflow:hidden;
+      background:#f3f4f6;
+      border:1px solid var(--line);
+      display:none;
+      box-shadow:0 12px 26px rgba(17,24,39,.08);
+    }
+    .preview img { width:100%; display:block; }
+    @media (max-width:380px) {
+      .brand { gap:10px; }
+      .logo { width:39px; height:39px; border-radius:14px; }
+      h1 { font-size:22px; }
+      button, .download { min-height:50px; font-size:15px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <div class="top">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3.2 19.8 7.7v8.6L12 20.8 4.2 16.3V7.7L12 3.2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M8.3 12h7.4M12 8.3v7.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1>HideText</h1>
+            <div class="subtitle">MP3 & PNG tools</div>
+          </div>
+        </div>
+        <div class="badge" id="badge">MP3</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tabBtn active" data-format="mp3">MP3</button>
+        <button class="tabBtn" data-format="png">PNG</button>
+      </div>
+
+      <div class="modeTabs">
+        <button class="modeBtn active" data-mode="hide">Спрятать</button>
+        <button class="modeBtn" data-mode="open">Открыть</button>
+      </div>
+    </section>
+
+    <section class="card panel show" id="mp3-hide">
+      <div class="title">Спрятать текст в MP3</div>
+      <label>MP3</label>
+      <input id="mp3HideFile" type="file" accept=".mp3,audio/mpeg,audio/mp3">
+      <label>Текст</label>
+      <textarea id="mp3SecretText" placeholder="Введите текст, который нужно спрятать..."></textarea>
+      <div class="actions">
+        <button id="mp3HideBtn">Спрятать</button>
+        <a id="mp3Download" class="download disabled" download>Скачать</a>
+      </div>
+      <audio id="mp3HideAudio" controls></audio>
+      <div id="mp3HideStatus" class="status">Готов к работе</div>
+    </section>
+
+    <section class="card panel" id="mp3-open">
+      <div class="title">Открыть текст из MP3</div>
+      <label>MP3</label>
+      <input id="mp3OpenFile" type="file" accept=".mp3,audio/mpeg,audio/mp3">
+      <div class="actions">
+        <button id="mp3OpenBtn">Открыть</button>
+      </div>
+      <label>Текст</label>
+      <textarea id="mp3OutputText" readonly placeholder="Здесь появится найденный текст"></textarea>
+      <div class="actions">
+        <button id="mp3CopyBtn" class="secondary" disabled>Скопировать</button>
+      </div>
+      <audio id="mp3OpenAudio" controls></audio>
+      <div id="mp3OpenStatus" class="status">Готов к работе</div>
+    </section>
+
+    <section class="card panel" id="png-hide">
+      <div class="title">Спрятать текст в PNG</div>
+      <label>PNG</label>
+      <input id="pngHideFile" type="file" accept=".png,image/png">
+      <label>Текст</label>
+      <textarea id="pngSecretText" placeholder="Введите текст, который нужно спрятать..."></textarea>
+      <div class="actions">
+        <button id="pngHideBtn">Спрятать</button>
+        <a id="pngDownload" class="download disabled" download>Скачать</a>
+      </div>
+      <div class="preview" id="pngPreviewBox"><img id="pngPreview" alt=""></div>
+      <div id="pngHideStatus" class="status">Готов к работе</div>
+    </section>
+
+    <section class="card panel" id="png-open">
+      <div class="title">Открыть текст из PNG</div>
+      <label>PNG</label>
+      <input id="pngOpenFile" type="file" accept=".png,image/png">
+      <div class="actions">
+        <button id="pngOpenBtn">Открыть</button>
+      </div>
+      <label>Текст</label>
+      <textarea id="pngOutputText" readonly placeholder="Здесь появится найденный текст"></textarea>
+      <div class="actions">
+        <button id="pngCopyBtn" class="secondary" disabled>Скопировать</button>
+      </div>
+      <div class="preview" id="pngOpenPreviewBox"><img id="pngOpenPreview" alt=""></div>
+      <div id="pngOpenStatus" class="status">Готов к работе</div>
+    </section>
+  </main>
+
+  <script>
+    const MP3_MAGIC = new TextEncoder().encode("MP3TEXTv1");
+    const PNG_MAGIC = new TextEncoder().encode("PNGSTEGv1");
+    let currentFormat = "mp3";
+    let currentMode = "hide";
+    const $ = id => document.getElementById(id);
+
+    function humanSize(bytes) {
+      const units = ["B", "KB", "MB", "GB"];
+      let value = bytes;
+      for (const unit of units) {
+        if (value < 1024) return value.toFixed(2) + " " + unit;
+        value /= 1024;
+      }
+      return value.toFixed(2) + " TB";
+    }
+
+    function getNewName(name, ext) {
+      const dot = name.lastIndexOf(".");
+      return (dot === -1 ? name : name.slice(0, dot)) + "_new." + ext;
+    }
+
+    function uint32ToBytes(num) {
+      return new Uint8Array([(num>>>24)&255,(num>>>16)&255,(num>>>8)&255,num&255]);
+    }
+
+    function bytesToUint32(arr, offset) {
+      return ((arr[offset]<<24)|(arr[offset+1]<<16)|(arr[offset+2]<<8)|arr[offset+3]) >>> 0;
+    }
+
+    function concatArrays(...arrays) {
+      const total = arrays.reduce((s,a)=>s+a.length,0);
+      const out = new Uint8Array(total);
+      let off = 0;
+      for (const a of arrays) { out.set(a, off); off += a.length; }
+      return out;
+    }
+
+    function findLastMagic(data, magic) {
+      for (let i = data.length - magic.length; i >= 0; i--) {
+        let ok = true;
+        for (let j = 0; j < magic.length; j++) {
+          if (data[i+j] !== magic[j]) { ok = false; break; }
+        }
+        if (ok) return i;
+      }
+      return -1;
+    }
+
+    function buildSimplePayload(text, magic) {
+      const textBytes = new TextEncoder().encode(text);
+      return concatArrays(magic, uint32ToBytes(textBytes.length), textBytes);
+    }
+
+    function readSimplePayload(data, magic) {
+      const index = findLastMagic(data, magic);
+      if (index === -1) throw new Error("Текст не найден");
+      const lenOffset = index + magic.length;
+      const textLen = bytesToUint32(data, lenOffset);
+      const textOffset = lenOffset + 4;
+      const textEnd = textOffset + textLen;
+      if (textEnd > data.length) throw new Error("Файл повреждён");
+      return new TextDecoder("utf-8").decode(data.slice(textOffset, textEnd));
+    }
+
+    function setView() {
+      document.querySelectorAll(".tabBtn").forEach(b => b.classList.toggle("active", b.dataset.format === currentFormat));
+      document.querySelectorAll(".modeBtn").forEach(b => b.classList.toggle("active", b.dataset.mode === currentMode));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("show"));
+      $(currentFormat + "-" + (currentMode === "hide" ? "hide" : "open")).classList.add("show");
+      $("badge").textContent = currentFormat.toUpperCase();
+    }
+
+    document.querySelectorAll(".tabBtn").forEach(b => b.onclick = () => { currentFormat = b.dataset.format; setView(); });
+    document.querySelectorAll(".modeBtn").forEach(b => b.onclick = () => { currentMode = b.dataset.mode; setView(); });
+
+    async function fileToBytes(file) {
+      return new Uint8Array(await file.arrayBuffer());
+    }
+
+    $("mp3HideBtn").onclick = async () => {
+      try {
+        const file = $("mp3HideFile").files[0];
+        const text = $("mp3SecretText").value;
+        if (!file) throw new Error("Выбери MP3");
+        if (!text) throw new Error("Введи текст");
+
+        const original = await fileToBytes(file);
+        const payload = buildSimplePayload(text, MP3_MAGIC);
+        const result = concatArrays(original, payload);
+        const blob = new Blob([result], { type: "audio/mpeg" });
+        const name = getNewName(file.name, "mp3");
+        const url = URL.createObjectURL(blob);
+
+        $("mp3Download").href = url;
+        $("mp3Download").download = name;
+        $("mp3Download").textContent = name;
+        $("mp3Download").classList.remove("disabled");
+        $("mp3HideAudio").src = url;
+        $("mp3HideAudio").style.display = "block";
+        $("mp3HideStatus").innerHTML = '<span class="ok">Готово</span>\n' + humanSize(result.length);
+      } catch (e) {
+        $("mp3HideStatus").innerHTML = '<span class="bad">' + e.message + '</span>';
+      }
+    };
+
+    $("mp3OpenBtn").onclick = async () => {
+      try {
+        const file = $("mp3OpenFile").files[0];
+        if (!file) throw new Error("Выбери MP3");
+
+        const data = await fileToBytes(file);
+        const text = readSimplePayload(data, MP3_MAGIC);
+        $("mp3OutputText").value = text;
+        $("mp3CopyBtn").disabled = false;
+        $("mp3OpenAudio").src = URL.createObjectURL(file);
+        $("mp3OpenAudio").style.display = "block";
+        $("mp3OpenStatus").innerHTML = '<span class="ok">Найдено</span>';
+      } catch (e) {
+        $("mp3OutputText").value = "";
+        $("mp3CopyBtn").disabled = true;
+        $("mp3OpenStatus").innerHTML = '<span class="bad">' + e.message + '</span>';
+      }
+    };
+
+    $("mp3CopyBtn").onclick = () => copyText("mp3OutputText");
+    $("pngCopyBtn").onclick = () => copyText("pngOutputText");
+
+    async function copyText(id) {
+      const text = $(id).value;
+      if (!text) return;
+      try { await navigator.clipboard.writeText(text); }
+      catch { $(id).select(); document.execCommand("copy"); }
+    }
+
+    function bytesToBits(bytes) {
+      const bits = [];
+      for (const byte of bytes) for (let i=7;i>=0;i--) bits.push((byte>>i)&1);
+      return bits;
+    }
+
+    function bitsToBytes(bits) {
+      const out = [];
+      for (let i=0; i+7<bits.length; i+=8) {
+        let v = 0;
+        for (let j=0;j<8;j++) v = (v<<1) | bits[i+j];
+        out.push(v);
+      }
+      return new Uint8Array(out);
+    }
+
+    async function loadImageFile(file) {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      return { img, url };
+    }
+
+    function drawImageToCanvas(img) {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      return { canvas, ctx };
+    }
+
+    function buildPngPayload(text) {
+      const textBytes = new TextEncoder().encode(text);
+      return concatArrays(PNG_MAGIC, uint32ToBytes(textBytes.length), textBytes);
+    }
+
+    function writeLSB(imageData, payload) {
+      const bits = bytesToBits(payload);
+      const data = imageData.data;
+      const capacityBits = Math.floor(data.length / 4) * 3;
+      if (bits.length > capacityBits) throw new Error("Текст слишком большой");
+
+      let bitIndex = 0;
+      for (let i=0; i<data.length && bitIndex<bits.length; i+=4) {
+        data[i] = (data[i] & 254) | bits[bitIndex++];
+        if (bitIndex<bits.length) data[i+1] = (data[i+1] & 254) | bits[bitIndex++];
+        if (bitIndex<bits.length) data[i+2] = (data[i+2] & 254) | bits[bitIndex++];
+      }
+      return imageData;
+    }
+
+    function readLSBBytes(imageData, bytesNeeded) {
+      const data = imageData.data;
+      const bits = [];
+      const bitsNeeded = bytesNeeded * 8;
+      for (let i=0; i<data.length && bits.length<bitsNeeded; i+=4) {
+        bits.push(data[i]&1);
+        if (bits.length<bitsNeeded) bits.push(data[i+1]&1);
+        if (bits.length<bitsNeeded) bits.push(data[i+2]&1);
+      }
+      if (bits.length < bitsNeeded) throw new Error("Данные повреждены");
+      return bitsToBytes(bits);
+    }
+
+    function readPngPayload(imageData) {
+      const headerLen = PNG_MAGIC.length + 4;
+      const header = readLSBBytes(imageData, headerLen);
+      for (let i=0; i<PNG_MAGIC.length; i++) {
+        if (header[i] !== PNG_MAGIC[i]) throw new Error("Текст не найден");
+      }
+      const textLen = bytesToUint32(header, PNG_MAGIC.length);
+      const full = readLSBBytes(imageData, headerLen + textLen);
+      return new TextDecoder("utf-8").decode(full.slice(headerLen, headerLen + textLen));
+    }
+
+    $("pngHideBtn").onclick = async () => {
+      try {
+        const file = $("pngHideFile").files[0];
+        const text = $("pngSecretText").value;
+        if (!file) throw new Error("Выбери PNG");
+        if (!text) throw new Error("Введи текст");
+
+        const { img } = await loadImageFile(file);
+        const { canvas, ctx } = drawImageToCanvas(img);
+        const payload = buildPngPayload(text);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        ctx.putImageData(writeLSB(imageData, payload), 0, 0);
+
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          const name = getNewName(file.name, "png");
+          const url = URL.createObjectURL(blob);
+
+          $("pngDownload").href = url;
+          $("pngDownload").download = name;
+          $("pngDownload").textContent = name;
+          $("pngDownload").classList.remove("disabled");
+          $("pngPreview").src = url;
+          $("pngPreviewBox").style.display = "block";
+          $("pngHideStatus").innerHTML = '<span class="ok">Готово</span>\n' + humanSize(blob.size);
+        }, "image/png");
+      } catch (e) {
+        $("pngHideStatus").innerHTML = '<span class="bad">' + e.message + '</span>';
+      }
+    };
+
+    $("pngOpenBtn").onclick = async () => {
+      try {
+        const file = $("pngOpenFile").files[0];
+        if (!file) throw new Error("Выбери PNG");
+
+        const { img, url } = await loadImageFile(file);
+        const { canvas, ctx } = drawImageToCanvas(img);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const text = readPngPayload(imageData);
+
+        $("pngOutputText").value = text;
+        $("pngCopyBtn").disabled = false;
+        $("pngOpenPreview").src = url;
+        $("pngOpenPreviewBox").style.display = "block";
+        $("pngOpenStatus").innerHTML = '<span class="ok">Найдено</span>';
+      } catch (e) {
+        $("pngOutputText").value = "";
+        $("pngCopyBtn").disabled = true;
+        $("pngOpenStatus").innerHTML = '<span class="bad">' + e.message + '</span>';
+      }
+    };
+
+    setView();
+  </script>
+</body>
+</html>
