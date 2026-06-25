@@ -1,0 +1,2 @@
+# HideText
+Hide your text
